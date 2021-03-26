@@ -4,18 +4,12 @@ use cipher::{BlockCipher, NewBlockCipher};
 use fpe::ff1::{BinaryNumeralString, FF1};
 use num_bigint::{BigUint, RandBigInt};
 use rayon::prelude::*;
-use std::io::Write;
-use std::sync::{Arc, RwLock};
 use std::ops::{Sub, Add};
 
-pub fn generate_to<WRIT>(key: &str, tweek: &str, space: BigUint, count: BigUint, f: WRIT)
-    where WRIT: Fn(BigUint, String) {
+pub fn generate_to<WRIT>(key: &str, tweek: &str, space: BigUint, count: BigUint, validate: bool, f: WRIT)
+    where WRIT: Fn(BigUint, String) + Send + Sync {
 
     let key_bytes = key.as_bytes();
-
-    // Manage concurency around the output function, we will be calling it in parallel
-    // and we can't make any assumptions about it's thread safety.
-    let f_lock = Arc::new(RwLock::new(f));
 
     // Calculate a random range of the correct size in the specified space.
     let mut rng = rand::thread_rng();
@@ -34,11 +28,13 @@ pub fn generate_to<WRIT>(key: &str, tweek: &str, space: BigUint, count: BigUint,
         let code = encode(&ff1, &x, tweek, size as usize);
 
         // Decrypt for validation
-        let validate = decode(&ff1, &code, tweek);
-        assert_eq!(code, validate);
+        if validate {
+            let checkval = decode(&ff1, &code, tweek);
+            assert_eq!(x, checkval);
+        }
 
         // Write out the source integer and the encoded value.
-        f_lock.write().unwrap().f(x, code);
+        f(x, code);
     });
 }
 
