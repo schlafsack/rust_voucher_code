@@ -1,5 +1,5 @@
 [package]
-name = "rust_aes"
+name = "rust_voucher_code"
 version = "0.1.0"
 authors = ["Tom Greasley <965075+schlafsack@users.noreply.github.com>"]
 edition = "2018"

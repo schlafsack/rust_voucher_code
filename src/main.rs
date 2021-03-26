@@ -1,4 +1,4 @@
-use rust_aes;
+use rust_voucher_code;
 use num_bigint::ToBigUint;
 use std::io::{BufWriter, Write};
 use std::sync::{Arc, RwLock};
@@ -20,7 +20,7 @@ fn main() {
     let f_lock = Arc::new(RwLock::new(file));
 
     // Write out the codes
-    rust_aes::generate_to(KEY, TWEEK, space, count, false, | x, code | {
+    rust_voucher_code::generate_to(KEY, TWEEK, space, count, false, | x, code | {
         let _ = writeln!(f_lock.write().unwrap(), "{},{}", x, code);
     });
 
